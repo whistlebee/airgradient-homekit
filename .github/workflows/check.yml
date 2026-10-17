@@ -1,0 +1,24 @@
+name: HomeKit firmware
+on: [push, pull_request]
+jobs:
+  compile:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install platformio==6.2.0
+      - name: Check measurement validity and AQ boundaries
+        run: |
+          c++ -std=c++11 -Wall -Wextra -Werror tests/homekit_policy_test.cpp -o /tmp/ag-homekit-test
+          /tmp/ag-homekit-test
+      - name: Compile AirGradient ONE with HomeSpan
+        run: pio run -e one-homekit
+      - uses: actions/upload-artifact@v4
+        with:
+          name: airgradient-one-homekit
+          path: |
+            .pio/build/one-homekit/firmware.bin
+            .pio/build/one-homekit/bootloader.bin
+            .pio/build/one-homekit/partitions.bin
